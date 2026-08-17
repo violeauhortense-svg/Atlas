@@ -267,16 +267,11 @@
     const productCount = document.getElementById('productCount')
     let products = []
 
-    // Load products on page load
-    async function loadProducts() {
-      try {
-        const response = await fetch('/api/products')
-        products = await response.json() || []
-        renderProducts()
-      } catch (error) {
-        console.error('Error loading products:', error)
-        productsList.innerHTML = '<div class="error">Erreur lors du chargement des produits</div>'
-      }
+    // Load products from localStorage
+    function loadProducts() {
+      const saved = localStorage.getItem('atlas_products')
+      products = saved ? JSON.parse(saved) : []
+      renderProducts()
     }
 
     function renderProducts() {
@@ -311,38 +306,25 @@
       `
     }
 
-    productForm.addEventListener('submit', async (e) => {
+    productForm.addEventListener('submit', (e) => {
       e.preventDefault()
 
       const formData = new FormData(productForm)
-      const data = {
+      const newProduct = {
+        id: Date.now().toString(),
         name: formData.get('name'),
         description: formData.get('description'),
         price: parseFloat(formData.get('price')),
         type: formData.get('type'),
-        image_url: formData.get('image_url')
+        image_url: formData.get('image_url'),
+        created_at: new Date().toISOString()
       }
 
-      try {
-        const response = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-
-        if (response.ok) {
-          const newProduct = await response.json()
-          products.unshift(newProduct)
-          renderProducts()
-          productForm.reset()
-          alert('Produit créé avec succès!')
-        } else {
-          alert('Erreur lors de la création du produit')
-        }
-      } catch (error) {
-        console.error('Error creating product:', error)
-        alert('Une erreur est survenue')
-      }
+      products.unshift(newProduct)
+      localStorage.setItem('atlas_products', JSON.stringify(products))
+      renderProducts()
+      productForm.reset()
+      alert('Produit créé avec succès!')
     })
 
     loadProducts()

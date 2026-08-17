@@ -1,9 +1,4 @@
 {
   "name": "digital-products",
-  "version": "0.1.0",
-  "scripts": {
-    "build": "echo 'No build needed'",
-    "start": "node server.js",
-    "dev": "node server.js"
-  }
+  "version": "1.0.0"
 }
