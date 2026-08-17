@@ -2,20 +2,33 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Product } from '@/types'
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  type: string
+  image_url?: string
+}
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await fetch('/api/products')
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`)
+        }
         const data = await response.json()
-        setProducts(data)
-      } catch (error) {
-        console.error('Failed to fetch products:', error)
+        setProducts(Array.isArray(data) ? data : [])
+      } catch (err) {
+        console.error('Failed to fetch products:', err)
+        setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
       }
@@ -55,7 +68,18 @@ export default function Home() {
 
       {/* Products */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-        {loading ? (
+        {error ? (
+          <div className="text-center bg-red-900/30 border border-red-500 p-6 rounded-lg">
+            <p className="text-red-300 mb-2">Erreur lors du chargement des produits</p>
+            <p className="text-gray-400 text-sm">{error}</p>
+            <Link
+              href="/dashboard"
+              className="inline-block mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold"
+            >
+              Aller au Dashboard
+            </Link>
+          </div>
+        ) : loading ? (
           <div className="text-center text-gray-400">Chargement des produits...</div>
         ) : products.length === 0 ? (
           <div className="text-center">
