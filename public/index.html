@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas Produits - Plateforme de Produits Digitaux</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #1e1b4b, #581c87, #1e1b4b);
+      color: white;
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+      padding: 1rem 2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    nav {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      background: linear-gradient(to right, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn {
+      background-color: #9333ea;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #a855f7;
+    }
+
+    .hero {
+      max-width: 1280px;
+      margin: 5rem auto;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .hero h2 {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: #d1d5db;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .features {
+      max-width: 1280px;
+      margin: 3rem auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature {
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .feature h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .feature p {
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      border-top: 1px solid rgba(147, 51, 234, 0.2);
+      margin-top: 5rem;
+      padding: 2rem;
+      text-align: center;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>Atlas Produits</h1>
+      <a href="/dashboard" class="btn">Dashboard Admin</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h2>Bienvenue sur ta Usine à Produits</h2>
+    <p>Crée, vends et gère tes produits digitaux depuis n'importe où.</p>
+    <a href="/dashboard" class="btn" style="display: inline-block; margin-top: 1rem;">Accéder au Dashboard</a>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <h3>📊 Gère tes Produits</h3>
+      <p>Crée et gère tous tes produits digitaux depuis ton dashboard.</p>
+    </div>
+    <div class="feature">
+      <h3>💰 Paiements Automatiques</h3>
+      <p>Stripe est intégré pour gérer les paiements en toute sécurité.</p>
+    </div>
+    <div class="feature">
+      <h3>📱 Mobile Friendly</h3>
+      <p>Gère tout depuis ton téléphone, où que tu sois.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2024 Atlas Produits - Construire ton empire digital</p>
+  </footer>
+</body>
+</html>
