@@ -34,15 +34,15 @@ Be conversational, precise, and data-backed.`,
       ],
     });
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
+    // Find text content in response
+    const textContent = response.content.find((c) => c.type === 'text');
+
+    if (!textContent || textContent.type !== 'text') {
+      console.error('Invalid response content:', response.content);
+      throw new Error(`Invalid response: ${JSON.stringify(response.content)}`);
     }
 
-    const assistantMessage = content.text;
-
-    // TODO: Save to Supabase once RLS is fixed
-    // For now, just return the message
+    const assistantMessage = textContent.text;
 
     return Response.json({
       success: true,
@@ -51,11 +51,12 @@ Be conversational, precise, and data-backed.`,
   } catch (error) {
     console.error('Chat error:', error);
     const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('Full error:', errorMsg);
     return Response.json(
       {
         success: false,
         error: 'Failed to process chat message',
-        details: errorMsg,
+        details: errorMsg.substring(0, 200),
       },
       { status: 500 }
     );
