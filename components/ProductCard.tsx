@@ -42,11 +42,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         </div>
         <small style={{ color: "var(--text-light)" }}>
-          Progress: {progress}%
+          Progression : {progress}%
         </small>
 
         <p style={{ marginTop: "15px", fontSize: "0.9rem", color: "var(--text-light)" }}>
-          Created: {new Date(product.created_date).toLocaleDateString()}
+          Créé : {new Date(product.created_date).toLocaleDateString("fr-FR")}
         </p>
       </div>
 

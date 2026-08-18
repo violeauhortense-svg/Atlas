@@ -13,8 +13,8 @@ export default function Navbar() {
             </div>
           </Link>
           <ul className="nav-links">
-            <li><Link href="/">Dashboard</Link></li>
-            <li><Link href="/create">New Idea</Link></li>
+            <li><Link href="/">Tableau de bord</Link></li>
+            <li><Link href="/create">Nouvelle idée</Link></li>
           </ul>
         </div>
       </div>

@@ -48,7 +48,7 @@ export default function ProductPage() {
       const data = await res.json();
       setProduct(data);
     } catch (err) {
-      console.error("Failed to load product", err);
+      console.error("Échec du chargement du produit", err);
     } finally {
       setLoading(false);
     }
@@ -87,10 +87,10 @@ export default function ProductPage() {
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      console.error("Failed to send message", err);
+      console.error("Échec de l'envoi du message", err);
       const errorMessage: Message = {
         role: "assistant",
-        message: "Sorry, I couldn't process your message. Please try again.",
+        message: "Désolé, je n'ai pas pu traiter votre message. Veuillez réessayer.",
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -99,8 +99,8 @@ export default function ProductPage() {
     }
   };
 
-  if (loading) return <div className="loading">Loading product...</div>;
-  if (!product) return <div className="error">Product not found</div>;
+  if (loading) return <div className="loading">Chargement du produit...</div>;
+  if (!product) return <div className="error">Produit non trouvé</div>;
 
   return (
     <div className="product-page">
@@ -108,7 +108,7 @@ export default function ProductPage() {
         <h1>{product.name}</h1>
         <div className="phase-info">
           <span className="phase">{getPhaseLabel(product.status)}</span>
-          <span className="date">Created: {formatDate(product.created_date)}</span>
+          <span className="date">Créé : {formatDate(product.created_date)}</span>
         </div>
       </div>
 
@@ -116,8 +116,8 @@ export default function ProductPage() {
         <div className="messages">
           {messages.length === 0 && (
             <div className="welcome-message">
-              <p>👋 Welcome! Chat with Claude about this product.</p>
-              <p>Ask for market validation, design feedback, or any decisions you need guidance on.</p>
+              <p>👋 Bienvenue ! Discutez avec Claude à propos de ce produit.</p>
+              <p>Demandez une validation du marché, un retour sur la conception, ou toute décision sur laquelle vous avez besoin de conseils.</p>
             </div>
           )}
           
@@ -131,7 +131,7 @@ export default function ProductPage() {
           
           {chatLoading && (
             <div className="message assistant">
-              <div className="message-content">Claude is thinking...</div>
+              <div className="message-content">Claude réfléchit...</div>
             </div>
           )}
           
@@ -143,11 +143,11 @@ export default function ProductPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Claude for guidance..."
+            placeholder="Posez une question à Claude..."
             disabled={chatLoading}
           />
           <button type="submit" className="primary" disabled={chatLoading || !input.trim()}>
-            {chatLoading ? "..." : "Send"}
+            {chatLoading ? "..." : "Envoyer"}
           </button>
         </form>
       </div>

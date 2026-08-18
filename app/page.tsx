@@ -28,7 +28,7 @@ export default function Dashboard() {
       const data = await res.json();
       setProducts(data.projects || []);
     } catch (err) {
-      setError("Failed to load products");
+      setError("Échec du chargement des produits");
       console.error(err);
     } finally {
       setLoading(false);
@@ -38,26 +38,26 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       <div className="header">
-        <h1>🚀 Atlas - Product Launch Factory</h1>
-        <p>Orchestrate AI agents to launch products in 30 days</p>
+        <h1>🚀 Atlas - Usine de Lancement Produit</h1>
+        <p>Orchestrez les agents IA pour lancer des produits en 30 jours</p>
       </div>
 
       <div className="actions">
         <Link href="/create">
-          <button className="primary">+ New Product Idea</button>
+          <button className="primary">+ Nouvelle idée</button>
         </Link>
         <button className="secondary" onClick={fetchProducts}>
-          🔄 Refresh
+          🔄 Rafraîchir
         </button>
       </div>
 
       {error && <div className="error">{error}</div>}
 
       {loading ? (
-        <div className="loading">Loading products...</div>
+        <div className="loading">Chargement des produits...</div>
       ) : products.length === 0 ? (
         <div className="card" style={{ textAlign: "center" }}>
-          <p>No products yet. Create your first idea! 💡</p>
+          <p>Aucun produit pour le moment. Créez votre première idée ! 💡</p>
         </div>
       ) : (
         <div className="grid">

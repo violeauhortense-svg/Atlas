@@ -40,56 +40,56 @@ export default function CreateIdea() {
 
   return (
     <div className="create-page">
-      <h1>💡 New Product Idea</h1>
-      <p className="subtitle">Submit an idea and let Atlas orchestrate the launch</p>
+      <h1>💡 Nouvelle idée produit</h1>
+      <p className="subtitle">Soumettez une idée et laissez Atlas orchestrer le lancement</p>
 
       <div className="form-container">
         {error && <div className="error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Product Name *</label>
+            <label>Nom du produit *</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="e.g., Slack Summary Bot"
+              placeholder="Ex: Bot Slack Summary"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>What's the idea? *</label>
+            <label>Quelle est l'idée ? *</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe what it does in one sentence"
+              placeholder="Décrivez ce qu'il fait en une phrase"
               rows={3}
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Target Users *</label>
+            <label>Utilisateurs cibles *</label>
             <input
               type="text"
               name="targetUsers"
               value={formData.targetUsers}
               onChange={handleChange}
-              placeholder="e.g., Busy executives managing Slack"
+              placeholder="Ex: Cadres occupés gérant Slack"
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Problem it solves *</label>
+            <label>Problème résolu *</label>
             <textarea
               name="problem"
               value={formData.problem}
               onChange={handleChange}
-              placeholder="What pain point does this address?"
+              placeholder="Quel problème résout-il ?"
               rows={3}
               required
             />
@@ -97,7 +97,7 @@ export default function CreateIdea() {
 
           <div className="form-actions">
             <button type="submit" className="primary" disabled={loading}>
-              {loading ? "Submitting..." : "Submit Idea"}
+              {loading ? "Envoi..." : "Soumettre l'idée"}
             </button>
             <button
               type="button"
@@ -105,7 +105,7 @@ export default function CreateIdea() {
               onClick={() => router.push("/")}
               disabled={loading}
             >
-              Cancel
+              Annuler
             </button>
           </div>
         </form>
