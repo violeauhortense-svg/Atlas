@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Atlas Produits</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #1e1b4b, #581c87, #1e1b4b);
+      color: white;
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid rgba(147, 51, 234, 0.2);
+      padding: 1rem 2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    nav {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      background: linear-gradient(to right, #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn {
+      background-color: #9333ea;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      background-color: #a855f7;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+
+    .stat-card h3 {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(55, 65, 81, 0.5);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      border-radius: 0.5rem;
+      color: white;
+      font-family: inherit;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    .form {
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      padding: 2rem;
+      border-radius: 0.5rem;
+      max-width: 600px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .table th {
+      background: rgba(147, 51, 234, 0.1);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .table td {
+      padding: 1rem;
+      border-top: 1px solid rgba(147, 51, 234, 0.1);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
+
+    .status-pending {
+      background: rgba(234, 179, 8, 0.2);
+      color: #fbbf24;
+    }
+
+    .loading {
+      color: #9ca3af;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>Atlas Produits - Dashboard</h1>
+      <a href="/" class="btn">← Retour</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Revenu Total</h3>
+        <div class="value">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <h3>Commandes</h3>
+        <div class="value">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Produits</h3>
+        <div class="value" id="productCount">0</div>
+      </div>
+    </div>
+
+    <!-- Create Product -->
+    <div class="section">
+      <h2>Créer un Produit</h2>
+      <form class="form" id="productForm">
+        <div class="form-group">
+          <label>Nom du Produit</label>
+          <input type="text" name="name" required placeholder="Ex: Générateur de Prompts IA">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" required placeholder="Décris ton produit..." rows="3"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Prix (USD)</label>
+            <input type="number" step="0.01" name="price" required placeholder="29.99">
+          </div>
+
+          <div class="form-group">
+            <label>Type</label>
+            <select name="type" required>
+              <option value="generator">Générateur</option>
+              <option value="template">Template</option>
+              <option value="calculator">Calculateur</option>
+              <option value="checklist">Checklist</option>
+              <option value="saas">SaaS</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>URL de l'image (optionnel)</label>
+          <input type="url" name="image_url" placeholder="https://...">
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%;">Créer le Produit</button>
+      </form>
+    </div>
+
+    <!-- Products List -->
+    <div class="section">
+      <h2>Mes Produits</h2>
+      <div id="productsList" class="loading">Chargement...</div>
+    </div>
+  </div>
+
+  <script>
+    const productForm = document.getElementById('productForm')
+    const productsList = document.getElementById('productsList')
+    const productCount = document.getElementById('productCount')
+    let products = []
+
+    // Load products from localStorage
+    function loadProducts() {
+      const saved = localStorage.getItem('atlas_products')
+      products = saved ? JSON.parse(saved) : []
+      renderProducts()
+    }
+
+    function renderProducts() {
+      productCount.textContent = products.length
+
+      if (products.length === 0) {
+        productsList.innerHTML = '<p style="color: #9ca3af;">Aucun produit pour l\'instant.</p>'
+        return
+      }
+
+      productsList.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Prix</th>
+              <th>Créé</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td>${p.name}</td>
+                <td>${p.type}</td>
+                <td>$${p.price}</td>
+                <td>${new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `
+    }
+
+    productForm.addEventListener('submit', (e) => {
+      e.preventDefault()
+
+      const formData = new FormData(productForm)
+      const newProduct = {
+        id: Date.now().toString(),
+        name: formData.get('name'),
+        description: formData.get('description'),
+        price: parseFloat(formData.get('price')),
+        type: formData.get('type'),
+        image_url: formData.get('image_url'),
+        created_at: new Date().toISOString()
+      }
+
+      products.unshift(newProduct)
+      localStorage.setItem('atlas_products', JSON.stringify(products))
+      renderProducts()
+      productForm.reset()
+      alert('Produit créé avec succès!')
+    })
+
+    loadProducts()
+  </script>
+</body>
+</html>
