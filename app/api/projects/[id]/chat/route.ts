@@ -1,4 +1,34 @@
 import { Anthropic } from '@anthropic-ai/sdk';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('project_id', params.id)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    return Response.json({ messages: data || [] });
+  } catch (error) {
+    console.error('GET error:', error);
+    return Response.json({ error: 'Failed to fetch messages' }, { status: 500 });
+  }
+}
 
 export async function POST(
   req: Request,
@@ -6,7 +36,11 @@ export async function POST(
 ) {
   try {
     const { message } = await req.json();
-    
+
+    if (!message) {
+      return Response.json({ error: 'Message is required' }, { status: 400 });
+    }
+
     const client = new Anthropic({
       apiKey: process.env.NEXT_PUBLIC_CLAUDE_API_KEY,
     });
@@ -31,11 +65,25 @@ Be conversational, precise, and data-backed.`,
       throw new Error('Unexpected response type');
     }
 
+    const assistantMessage = content.text;
+
+    // Save both messages to Supabase
+    await Promise.all([
+      supabase.from('chat_messages').insert({
+        project_id: params.id,
+        role: 'user',
+        message,
+      }),
+      supabase.from('chat_messages').insert({
+        project_id: params.id,
+        role: 'assistant',
+        message: assistantMessage,
+      }),
+    ]);
+
     return Response.json({
       success: true,
-      message: content.text,
-      validationRequired: content.text.includes('[✅') || content.text.includes('[🔄'),
-      options: ['PROCEED', 'ITERATE', 'REJECT'],
+      message: assistantMessage,
     });
   } catch (error) {
     console.error('Chat error:', error);

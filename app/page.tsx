@@ -8,7 +8,7 @@ interface Product {
   id: string;
   name: string;
   status: string;
-  created_date: string;
+  created_at: string;
 }
 
 export default function Dashboard() {

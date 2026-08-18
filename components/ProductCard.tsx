@@ -8,7 +8,7 @@ interface ProductCardProps {
     id: string;
     name: string;
     status: string;
-    created_date: string;
+    created_at: string;
   };
 }
 
@@ -46,7 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </small>
 
         <p style={{ marginTop: "15px", fontSize: "0.9rem", color: "var(--text-light)" }}>
-          Créé : {new Date(product.created_date).toLocaleDateString("fr-FR")}
+          Créé : {new Date(product.created_at).toLocaleDateString("fr-FR")}
         </p>
       </div>
 

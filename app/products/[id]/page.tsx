@@ -11,10 +11,10 @@ interface Message {
 }
 
 interface ProductData {
-  product_id: string;
+  id: string;
   name: string;
   status: string;
-  created_date: string;
+  created_at: string;
 }
 
 export default function ProductPage() {
@@ -34,7 +34,19 @@ export default function ProductPage() {
 
   useEffect(() => {
     fetchProduct();
+    fetchMessages();
   }, [productId]);
+
+  const fetchMessages = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(`${apiUrl}/api/projects/${productId}/chat`);
+      const data = await res.json();
+      setMessages(data.messages || []);
+    } catch (err) {
+      console.error("Échec du chargement des messages", err);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -108,7 +120,7 @@ export default function ProductPage() {
         <h1>{product.name}</h1>
         <div className="phase-info">
           <span className="phase">{getPhaseLabel(product.status)}</span>
-          <span className="date">Créé : {formatDate(product.created_date)}</span>
+          <span className="date">Créé : {formatDate(product.created_at)}</span>
         </div>
       </div>
 
