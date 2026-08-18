@@ -27,12 +27,22 @@ export default function CreateIdea() {
     setError("");
 
     try {
-      // For now, just show success and redirect
-      // In production, this would call your backend API
-      alert(`✅ Idea submitted!\n\n${formData.name}\n\nPhase 1 validation starting...`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(`${apiUrl}/api/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create project");
+      }
+
+      const newProject = await res.json();
       router.push("/");
     } catch (err) {
-      setError("Failed to submit idea");
+      setError("Échec de la soumission de l'idée");
+      console.error(err);
     } finally {
       setLoading(false);
     }
