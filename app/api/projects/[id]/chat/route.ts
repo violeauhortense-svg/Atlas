@@ -1,3 +1,5 @@
+import { Anthropic } from '@anthropic-ai/sdk';
+
 export async function GET() {
   return Response.json({ messages: [] });
 }
