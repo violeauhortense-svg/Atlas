@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getPhaseLabel, formatDate, getAgentsForPhase } from "@/lib/utils";
 import AgentGraph from "@/components/AgentGraph";
 import ValidationPanel from "@/components/ValidationPanel";
+import ProjectRefinement from "@/components/ProjectRefinement";
 
 interface Message {
   role: "user" | "assistant";
@@ -165,6 +166,9 @@ export default function ProductPage() {
           </button>
         </div>
       </div>
+
+      {/* Affiner le projet avant lancement */}
+      <ProjectRefinement projectId={productId} projectName={product.name} />
 
       {/* Graphe des Agents */}
       <AgentGraph

@@ -50,8 +50,13 @@ Be conversational, precise, and data-backed.`,
     });
   } catch (error) {
     console.error('Chat error:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
     return Response.json(
-      { error: 'Failed to process chat message' },
+      {
+        success: false,
+        error: 'Failed to process chat message',
+        details: errorMsg,
+      },
       { status: 500 }
     );
   }
