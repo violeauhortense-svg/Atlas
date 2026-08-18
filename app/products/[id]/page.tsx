@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { getPhaseLabel, formatDate } from "@/lib/utils";
+import { getPhaseLabel, formatDate, getAgentsForPhase } from "@/lib/utils";
+import AgentGraph from "@/components/AgentGraph";
+import ValidationPanel from "@/components/ValidationPanel";
 
 interface Message {
   role: "user" | "assistant";
@@ -123,6 +125,36 @@ export default function ProductPage() {
           <span className="date">Créé : {formatDate(product.created_at)}</span>
         </div>
       </div>
+
+      {/* Graphe des Agents */}
+      <AgentGraph
+        agents={getAgentsForPhase(product.status).map((agent, idx) => ({
+          id: `agent-${idx}`,
+          name: agent.name,
+          role: agent.task,
+          status: idx % 3 === 0 ? 'active' : idx % 3 === 1 ? 'completed' : 'idle',
+          tasks: [agent.task],
+          subAgents: []
+        }))}
+        projectName={product.name}
+      />
+
+      {/* Actions à Valider */}
+      <ValidationPanel
+        projectId={productId}
+        actions={[
+          {
+            id: 'action-1',
+            agent: 'Market Researcher',
+            title: 'Validation de marché',
+            description: 'Confirmation que le marché cible a été validé avec 10+ entretiens clients',
+            status: 'pending',
+            priority: 'high',
+            createdAt: new Date().toLocaleDateString('fr-FR'),
+            details: { interviews: 12, satisfaction: '92%' }
+          }
+        ]}
+      />
 
       <div className="chat-container">
         <div className="messages">
