@@ -48,15 +48,7 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.id}`}>
-      <div className="card" style={{ cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s", position: "relative" }}
-           onMouseEnter={(e) => {
-             e.currentTarget.style.transform = "translateY(-4px)";
-             e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 0, 0, 0.15)";
-           }}
-           onMouseLeave={(e) => {
-             e.currentTarget.style.transform = "translateY(0)";
-             e.currentTarget.style.boxShadow = "var(--shadow)";
-           }}>
+      <div className="product-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "10px" }}>
           <h3 style={{ margin: 0 }}>{product.name}</h3>
           <button
@@ -108,19 +100,56 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
       </div>
 
       <style jsx>{`
+        .product-card {
+          position: relative;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          border-radius: 12px;
+          background: var(--bg-elevated);
+          border: 2px solid var(--border);
+          padding: var(--spacing-lg);
+          box-shadow: var(--shadow);
+          overflow: hidden;
+        }
+
+        .product-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+          transition: left 0.5s ease;
+          pointer-events: none;
+        }
+
+        .product-card:hover {
+          transform: translateY(-8px);
+          border-color: var(--primary);
+          box-shadow: 0 20px 50px rgba(0, 217, 255, 0.15);
+        }
+
+        .product-card:hover::before {
+          left: 100%;
+        }
+
         .progress-bar {
           width: 100%;
-          height: 8px;
-          background-color: var(--bg);
-          border-radius: 4px;
+          height: 12px;
+          background: var(--bg-alt);
+          border-radius: 6px;
           overflow: hidden;
-          margin-top: 10px;
+          margin-top: 12px;
+          border: 1px solid var(--border);
+          position: relative;
         }
 
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #0070f3, #0051cc);
-          transition: width 0.3s ease;
+          background: linear-gradient(90deg, var(--primary), var(--secondary));
+          transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+          box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
 
         .delete-btn {
@@ -128,14 +157,20 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
           border: none;
           color: var(--text-light);
           cursor: pointer;
-          font-size: 1.2rem;
-          padding: 4px 8px;
-          transition: color 0.2s, transform 0.2s;
+          font-size: 1.4rem;
+          padding: 4px 12px;
+          transition: all 0.3s ease;
+          font-weight: 700;
         }
 
         .delete-btn:hover:not(:disabled) {
-          color: #ff6b6b;
-          transform: scale(1.2);
+          color: var(--danger);
+          transform: scale(1.3) rotate(90deg);
+          text-shadow: 0 0 10px rgba(255, 56, 96, 0.5);
+        }
+
+        .delete-btn:active:not(:disabled) {
+          transform: scale(0.95) rotate(90deg);
         }
 
         .delete-btn:disabled {
