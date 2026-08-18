@@ -61,19 +61,8 @@ Be conversational, precise, and data-backed.`,
 
     const assistantMessage = content.text;
 
-    // Save both messages to Supabase
-    await Promise.all([
-      supabase.from('chat_messages').insert({
-        project_id: params.id,
-        role: 'user',
-        message,
-      }),
-      supabase.from('chat_messages').insert({
-        project_id: params.id,
-        role: 'assistant',
-        message: assistantMessage,
-      }),
-    ]);
+    // TODO: Save to Supabase once RLS is fixed
+    // For now, just return the message
 
     return Response.json({
       success: true,
