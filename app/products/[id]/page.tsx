@@ -168,7 +168,13 @@ export default function ProductPage() {
       </div>
 
       {/* Affiner le projet avant lancement */}
-      <ProjectRefinement projectId={productId} projectName={product.name} />
+      <ProjectRefinement
+        projectId={productId}
+        projectName={product.name}
+        description={product.description}
+        targetUsers={product.target_users}
+        problem={product.problem}
+      />
 
       {/* Graphe des Agents */}
       <AgentGraph

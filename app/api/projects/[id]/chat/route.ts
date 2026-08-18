@@ -21,7 +21,7 @@ export async function POST(
 
     const response = await client.messages.create({
       model: 'claude-opus-5',
-      max_tokens: 1500,
+      max_tokens: 4000,
       system: `You are Claude, embedded in Atlas Product Orchestration.
 Your role: Help users build better products by providing strategic guidance based on project data.
 

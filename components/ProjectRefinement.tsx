@@ -5,12 +5,18 @@ import { useState } from "react";
 interface RefinementProps {
   projectId: string;
   projectName: string;
+  description?: string;
+  targetUsers?: string;
+  problem?: string;
   onRefined?: (refinedBrief: string) => void;
 }
 
 export default function ProjectRefinement({
   projectId,
   projectName,
+  description,
+  targetUsers,
+  problem,
   onRefined,
 }: RefinementProps) {
   const [messages, setMessages] = useState<
@@ -35,7 +41,18 @@ export default function ProjectRefinement({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `Project: ${projectName}\n\nUser feedback: ${userMessage}`,
+          message: `PROJECT DETAILS:
+Name: ${projectName}
+Description: ${description || 'Not provided'}
+Target Users: ${targetUsers || 'Not provided'}
+Problem Solved: ${problem || 'Not provided'}
+
+USER FEEDBACK: ${userMessage}
+
+INSTRUCTIONS: Respond with a SHORT, STRUCTURED synthesis (max 150 words). Format:
+- Key insight (1 line)
+- 3 actionable recommendations
+- One critical question to clarify`,
         }),
       });
 
@@ -217,7 +234,8 @@ export default function ProjectRefinement({
         .message.claude .message-content {
           background: var(--bg-elevated);
           border: 1px solid var(--border);
-          color: var(--text);
+          color: #ffffff;
+          font-weight: 500;
         }
 
         .refinement-form {
