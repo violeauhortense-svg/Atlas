@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface RefinementProps {
   projectId: string;
@@ -25,6 +25,29 @@ export default function ProjectRefinement({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [refinedBrief, setRefinedBrief] = useState("");
+
+  // Load chat history on mount
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+        const res = await fetch(`${apiUrl}/api/projects/${projectId}/chat`);
+        const data = await res.json();
+
+        if (data.messages && Array.isArray(data.messages)) {
+          const formattedMessages = data.messages.map((msg: any) => ({
+            role: msg.role,
+            content: msg.message,
+          }));
+          setMessages(formattedMessages);
+        }
+      } catch (err) {
+        console.error("Error loading chat history:", err);
+      }
+    };
+
+    loadMessages();
+  }, [projectId]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
