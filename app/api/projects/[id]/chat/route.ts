@@ -15,18 +15,28 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('Fetching messages for project:', params.id);
+
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('project_id', params.id)
       .order('created_at', { ascending: true });
 
-    if (error) throw error;
+    console.log('Supabase response:', { data, error });
+
+    if (error) {
+      console.error('Supabase error details:', error);
+      throw error;
+    }
 
     return Response.json({ messages: data || [] });
   } catch (error) {
-    console.error('GET error:', error);
-    return Response.json({ error: 'Failed to fetch messages' }, { status: 500 });
+    console.error('GET chat error:', error);
+    return Response.json({
+      error: 'Failed to fetch messages',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
