@@ -1,17 +1,5 @@
-import { Anthropic } from '@anthropic-ai/sdk';
-
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // For now, return empty messages while we fix RLS
-    // TODO: Fix Supabase RLS policies
-    return Response.json({ messages: [] });
-  } catch (error) {
-    console.error('GET chat error:', error);
-    return Response.json({ error: 'Failed to fetch messages' }, { status: 500 });
-  }
+export async function GET() {
+  return Response.json({ messages: [] });
 }
 
 export async function POST(
