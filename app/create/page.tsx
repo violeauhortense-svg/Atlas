@@ -12,7 +12,6 @@ export default function CreateIdea() {
     description: "",
     targetUsers: "",
     problem: "",
-    budget: "10000",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -94,20 +93,6 @@ export default function CreateIdea() {
               rows={3}
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label>Budget Estimate *</label>
-            <select
-              name="budget"
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-            >
-              <option value="5000">$5,000</option>
-              <option value="10000">$10,000</option>
-              <option value="20000">$20,000</option>
-              <option value="50000">$50,000+</option>
-            </select>
           </div>
 
           <div className="form-actions">
