@@ -35,6 +35,10 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteProduct = (productId: string) => {
+    setProducts(products.filter(p => p.id !== productId));
+  };
+
   return (
     <div className="dashboard">
       <div className="header">
@@ -62,7 +66,7 @@ export default function Dashboard() {
       ) : (
         <div className="grid">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} onDelete={handleDeleteProduct} />
           ))}
         </div>
       )}

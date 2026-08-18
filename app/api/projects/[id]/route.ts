@@ -29,3 +29,22 @@ export async function GET(
     return Response.json({ error: 'Failed to fetch project' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', params.id);
+
+    if (error) throw error;
+
+    return Response.json({ success: true, message: 'Project deleted' });
+  } catch (error) {
+    console.error('DELETE error:', error);
+    return Response.json({ error: 'Failed to delete project' }, { status: 500 });
+  }
+}
