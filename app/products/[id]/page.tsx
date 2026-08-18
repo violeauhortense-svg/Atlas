@@ -50,6 +50,26 @@ export default function ProductPage() {
     }
   };
 
+  const launchOrchestration = async () => {
+    try {
+      setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(`${apiUrl}/api/projects/${productId}/orchestrate`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("🚀 CEO Agent a lancé l'orchestration ! Les agents sont maintenant actifs !");
+        fetchProduct();
+      }
+    } catch (err) {
+      console.error("Erreur orchestration", err);
+      alert("Erreur lors du lancement de l'orchestration");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -119,10 +139,30 @@ export default function ProductPage() {
   return (
     <div className="product-page">
       <div className="product-header">
-        <h1>{product.name}</h1>
-        <div className="phase-info">
-          <span className="phase">{getPhaseLabel(product.status)}</span>
-          <span className="date">Créé : {formatDate(product.created_at)}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <h1>{product.name}</h1>
+            <div className="phase-info">
+              <span className="phase">{getPhaseLabel(product.status)}</span>
+              <span className="date">Créé : {formatDate(product.created_at)}</span>
+            </div>
+          </div>
+          <button
+            onClick={launchOrchestration}
+            disabled={loading}
+            style={{
+              padding: "12px 24px",
+              background: "linear-gradient(135deg, #00d9ff, #ff006e)",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "700",
+              cursor: "pointer",
+              fontSize: "0.95rem",
+            }}
+          >
+            🚀 {loading ? "Orchestration..." : "Lancer CEO"}
+          </button>
         </div>
       </div>
 
