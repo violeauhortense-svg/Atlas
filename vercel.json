@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "atlas-orchestration",
+  "env": {
+    "CLAUDE_API_KEY": "@claude_api_key",
+    "PAPERCLIP_API_KEY": "@paperclip_api_key",
+    "NODE_ENV": "production"
+  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "public": false,
+  "functions": {
+    "server.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ]
+}

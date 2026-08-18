@@ -1,0 +1,49 @@
+schema: paperclip/v1
+
+# Adapter configuration is intentionally conservative.
+# Review and set the adapter type/model in Paperclip after import,
+# because the exact runtime available on your machine may differ.
+
+agents:
+  ceo:
+    adapter:
+      type: claude_local
+  market-research:
+    adapter:
+      type: claude_local
+  product-manager:
+    adapter:
+      type: claude_local
+  platform-engineer:
+    adapter:
+      type: claude_local
+  fullstack:
+    adapter:
+      type: claude_local
+  brand:
+    adapter:
+      type: claude_local
+  content:
+    adapter:
+      type: claude_local
+  social-media:
+    adapter:
+      type: claude_local
+  email:
+    adapter:
+      type: claude_local
+  growth:
+    adapter:
+      type: claude_local
+  qa:
+    adapter:
+      type: claude_local
+  customer-success:
+    adapter:
+      type: claude_local
+  data-analyst:
+    adapter:
+      type: claude_local
+
+# Do not place API keys or passwords here.
+# Use Paperclip secrets / environment variables.

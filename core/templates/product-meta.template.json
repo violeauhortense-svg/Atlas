@@ -1,0 +1,212 @@
+{
+  "product_id": "atlas-2026-Q3-001",
+  "name": "Product Name Here",
+  "description": "Brief description of what the product does",
+  "status": "phase_1_validation",
+  "created_date": "2026-08-18T09:30:00Z",
+  "created_by": "your-email@domain.com",
+
+  "specifications": {
+    "target_users": "Who is this for? (e.g., busy executives)",
+    "problem_statement": "What pain point does this solve?",
+    "value_proposition": "How is this different from competitors?",
+    "budget_hypothesis": 10000,
+    "currency": "USD",
+    "timeline_constraint": "4-weeks"
+  },
+
+  "phases": {
+    "phase_1_validation": {
+      "status": "not_started",
+      "start_date": null,
+      "end_date": null,
+      "planned_duration_days": 5,
+      "agents_assigned": [
+        "market-research",
+        "product-manager",
+        "brand",
+        "data-analyst"
+      ],
+      "deliverables": {
+        "market-research": {
+          "status": "pending",
+          "files": [
+            "01-market-research/market-analysis.md",
+            "01-market-research/competitor-landscape.json",
+            "01-market-research/tam-sam-som.xlsx"
+          ]
+        },
+        "product-manager": {
+          "status": "pending",
+          "files": [
+            "02-product-brief/brief.md",
+            "02-product-brief/user-stories.json",
+            "02-product-brief/feature-roadmap.json"
+          ]
+        },
+        "brand": {
+          "status": "pending",
+          "files": [
+            "03-brand/positioning-statement.md",
+            "03-brand/naming-options.json"
+          ]
+        },
+        "data-analyst": {
+          "status": "pending",
+          "files": [
+            "04-metrics/success-metrics.json",
+            "04-metrics/growth-model.json"
+          ]
+        }
+      },
+      "decision_gate": {
+        "type": "go_nogo",
+        "status": "awaiting_human_approval",
+        "recommendation": "GO",
+        "decision_date": null,
+        "decision_maker": "human"
+      }
+    },
+
+    "phase_2_architecture": {
+      "status": "not_started",
+      "start_date": null,
+      "end_date": null,
+      "planned_duration_days": 5,
+      "agents_assigned": [
+        "fullstack",
+        "platform-engineer",
+        "content",
+        "social-media",
+        "email",
+        "growth"
+      ],
+      "deliverables": {
+        "fullstack": {
+          "status": "pending",
+          "files": [
+            "05-architecture/ui-mockups.figma",
+            "05-architecture/database-schema.sql",
+            "05-architecture/api-specification.openapi.json"
+          ]
+        },
+        "platform-engineer": {
+          "status": "pending",
+          "files": [
+            "05-architecture/infrastructure-diagram.md",
+            "05-architecture/deployment-strategy.md"
+          ]
+        },
+        "content": {
+          "status": "pending",
+          "files": [
+            "06-marketing/landing-page-copy.md",
+            "06-marketing/email-welcome-sequence.json"
+          ]
+        },
+        "growth": {
+          "status": "pending",
+          "files": [
+            "06-marketing/gtm-strategy.md",
+            "06-marketing/customer-acquisition-plan.json"
+          ]
+        }
+      },
+      "decision_gate": {
+        "type": "architecture_review",
+        "status": "pending",
+        "recommendation": null,
+        "decision_date": null,
+        "decision_maker": "human"
+      }
+    },
+
+    "phase_3_development": {
+      "status": "not_started",
+      "start_date": null,
+      "end_date": null,
+      "planned_duration_days": 14,
+      "agents_assigned": [
+        "fullstack",
+        "platform-engineer",
+        "qa"
+      ],
+      "progress_percentage": 0,
+      "current_blockers": [],
+      "deliverables": {
+        "fullstack": {
+          "status": "pending",
+          "git_repo": "https://github.com/...",
+          "staging_url": null
+        },
+        "qa": {
+          "status": "pending",
+          "test_coverage": 0,
+          "critical_bugs": 0
+        }
+      }
+    },
+
+    "phase_4_launch": {
+      "status": "not_started",
+      "launch_date": null,
+      "launch_time": null,
+      "decision_gate": {
+        "type": "final_approval",
+        "status": "pending"
+      }
+    },
+
+    "phase_5_post_launch": {
+      "status": "not_started",
+      "agents_assigned": [
+        "customer-success",
+        "growth",
+        "data-analyst"
+      ],
+      "metrics": {
+        "week_1": {
+          "users_acquired": 0,
+          "nps_score": null,
+          "revenue": 0
+        },
+        "week_2": {
+          "paid_customers": 0,
+          "mrr": 0
+        },
+        "week_4": {
+          "retention_rate": null,
+          "churn_rate": null
+        }
+      }
+    }
+  },
+
+  "approval_history": [
+    {
+      "phase": "intake",
+      "timestamp": "2026-08-18T09:30:00Z",
+      "actor": "human",
+      "decision": "approved",
+      "notes": "Product idea submitted from iPhone"
+    }
+  ],
+
+  "risks": {
+    "level": "medium",
+    "identified": [
+      {
+        "risk": "Strong competition from existing solutions",
+        "likelihood": "high",
+        "impact": "medium",
+        "mitigation": "Focus on underserved niche or unique positioning"
+      }
+    ],
+    "timeline_risk": false,
+    "budget_risk": false
+  },
+
+  "dependencies": [],
+
+  "notes": "Add any important context here"
+}

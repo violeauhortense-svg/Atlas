@@ -1,0 +1,67 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.*.prod
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+.vercel
+.next
+dist/
+build/
+
+# Secrets & Keys (NEVER commit these)
+*.key
+*.pem
+*-secrets.json
+
+# Temporary
+*.tmp
+.cache/
+temp/
+.temp/
+
+# Project specific
+projects/*/node_modules/
+projects/*/.git/
+.claude-code
+.claudio
+
+# Do not commit actual product data
+projects/*/01-market-research/
+projects/*/02-product-brief/
+projects/*/03-brand/
+projects/*/04-metrics/
+projects/*/05-architecture/
+projects/*/06-marketing/
+projects/*/chat.json
+projects/*/meta.json
+projects/*/approval-memo.md
+
+# Keep template only
+!core/templates/
+core/templates/**
+!core/templates/**.template.*
