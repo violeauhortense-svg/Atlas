@@ -18,6 +18,9 @@ interface ProductData {
   name: string;
   status: string;
   created_at: string;
+  description?: string;
+  target_users?: string;
+  problem?: string;
 }
 
 export default function ProductPage() {
