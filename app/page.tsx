@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import ResourcesPanel from "@/components/ResourcesPanel";
 
 interface Product {
   id: string;
@@ -56,6 +57,8 @@ export default function Dashboard() {
       </div>
 
       {error && <div className="error">{error}</div>}
+
+      <ResourcesPanel />
 
       {loading ? (
         <div className="loading">Chargement des produits...</div>
