@@ -47,6 +47,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const body = await req.json().catch(() => ({}));
+
     // Fetch product data
     const { data: product, error: fetchError } = await supabase
       .from('projects')
@@ -58,17 +60,31 @@ export async function POST(
       return Response.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    // Fetch validated actions from Claude
+    const { data: validatedActions } = await supabase
+      .from('agent_actions')
+      .select('*')
+      .eq('project_id', params.id)
+      .eq('status', 'approved');
+
     // Initialize Claude
     const client = new Anthropic({
       apiKey: process.env.NEXT_PUBLIC_CLAUDE_API_KEY,
     });
+
+    // Build context from Claude's validated suggestions
+    const claudeContext = validatedActions && validatedActions.length > 0
+      ? `\n\nValidated Claude Suggestions:\n${validatedActions
+          .map((a: any) => `- ${a.title}: ${a.description}`)
+          .join('\n')}`
+      : '';
 
     // CEO Agent analyzes and creates orchestration plan
     const productInfo = `
 Name: ${product.name}
 Description: ${product.description}
 Target Users: ${product.target_users}
-Problem: ${product.problem}
+Problem: ${product.problem}${claudeContext}
     `.trim();
 
     const response = await client.messages.create({

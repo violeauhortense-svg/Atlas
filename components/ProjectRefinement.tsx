@@ -72,21 +72,66 @@ Problem Solved: ${problem || 'Not provided'}
 
 USER FEEDBACK: ${userMessage}
 
-INSTRUCTIONS: Respond with a SHORT, STRUCTURED synthesis (max 150 words). Format:
-- Key insight (1 line)
-- 3 actionable recommendations
-- One critical question to clarify`,
+INSTRUCTIONS: Respond in JSON format ONLY with this structure:
+{
+  "insight": "One-line key insight",
+  "recommendations": [
+    "1. First actionable recommendation",
+    "2. Second actionable recommendation",
+    "3. Third actionable recommendation"
+  ],
+  "criticalQuestion": "One question to clarify",
+  "proposedAction": {
+    "title": "Short action title",
+    "description": "What should happen next",
+    "actionType": "claude_suggestion"
+  }
+}`,
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "claude", content: data.message },
-        ]);
-        setRefinedBrief(data.message);
+        try {
+          // Parse Claude's JSON response
+          const jsonMatch = data.message.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const claudeResponse = JSON.parse(jsonMatch[0]);
+
+            // Display structured response
+            const formattedMessage = `
+📊 **Analyse Claude**
+
+💡 Insight: ${claudeResponse.insight}
+
+✅ Recommandations:
+${claudeResponse.recommendations.map((r: string) => `• ${r}`).join('\n')}
+
+❓ Question Critique: ${claudeResponse.criticalQuestion}
+            `.trim();
+
+            setMessages((prev) => [
+              ...prev,
+              { role: "claude", content: formattedMessage },
+            ]);
+            setRefinedBrief(formattedMessage);
+
+            // Create a proposed action for validation
+            if (claudeResponse.proposedAction) {
+              await createProposedAction(claudeResponse.proposedAction);
+            }
+          } else {
+            throw new Error("Invalid JSON response");
+          }
+        } catch (parseErr) {
+          // Fallback to text display
+          setMessages((prev) => [
+            ...prev,
+            { role: "claude", content: data.message },
+          ]);
+          setRefinedBrief(data.message);
+        }
       } else {
         setMessages((prev) => [
           ...prev,
@@ -107,6 +152,25 @@ INSTRUCTIONS: Respond with a SHORT, STRUCTURED synthesis (max 150 words). Format
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createProposedAction = async (action: any) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      await fetch(`${apiUrl}/api/projects/${projectId}/actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: action.title,
+          description: action.description,
+          actionType: "claude_suggestion",
+          priority: "high",
+          details: { proposedBy: "claude", timestamp: new Date().toISOString() },
+        }),
+      });
+    } catch (err) {
+      console.error("Error creating proposed action:", err);
     }
   };
 

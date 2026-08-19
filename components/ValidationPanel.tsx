@@ -1,36 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Action {
   id: string;
-  agent: string;
+  agent?: string;
   title: string;
-  description: string;
+  description?: string;
   status: "pending" | "approved" | "rejected";
   priority: "low" | "medium" | "high";
-  createdAt: string;
+  created_at?: string;
+  user_feedback?: string;
   details?: Record<string, any>;
+  action_type?: string;
 }
 
 interface ValidationPanelProps {
   projectId: string;
   actions?: Action[];
+  onActionValidated?: (actionId: string, status: string) => void;
 }
 
 export default function ValidationPanel({
   projectId,
-  actions = [],
+  actions: initialActions = [],
+  onActionValidated,
 }: ValidationPanelProps) {
+  const [actions, setActions] = useState<Action[]>(initialActions);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
   const [validating, setValidating] = useState<string | null>(null);
+  const [userFeedback, setUserFeedback] = useState("");
+  const [loadingActions, setLoadingActions] = useState(false);
+
+  useEffect(() => {
+    loadActions();
+  }, [projectId]);
+
+  const loadActions = async () => {
+    setLoadingActions(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(`${apiUrl}/api/projects/${projectId}/actions`);
+      const data = await res.json();
+      if (data.actions) {
+        setActions(data.actions);
+      }
+    } catch (err) {
+      console.error("Error loading actions:", err);
+    } finally {
+      setLoadingActions(false);
+    }
+  };
 
   const handleApprove = async (actionId: string) => {
     setValidating(actionId);
     try {
-      // TODO: Call API to approve action
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert("Action approuvée ✅");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(
+        `${apiUrl}/api/projects/${projectId}/actions/${actionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "approved",
+            userFeedback: userFeedback || "Approuvée par l'utilisateur",
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (data.success || data.action) {
+        setActions((prev) =>
+          prev.map((a) =>
+            a.id === actionId
+              ? { ...a, status: "approved", user_feedback: userFeedback }
+              : a
+          )
+        );
+        setUserFeedback("");
+        if (onActionValidated) {
+          onActionValidated(actionId, "approved");
+        }
+      }
+    } catch (err) {
+      console.error("Error approving action:", err);
+      alert("❌ Erreur lors de l'approbation");
     } finally {
       setValidating(null);
     }
@@ -39,15 +93,44 @@ export default function ValidationPanel({
   const handleReject = async (actionId: string) => {
     setValidating(actionId);
     try {
-      // TODO: Call API to reject action
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert("Action rejetée ❌");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(
+        `${apiUrl}/api/projects/${projectId}/actions/${actionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "rejected",
+            userFeedback: userFeedback || "Rejetée par l'utilisateur",
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (data.success || data.action) {
+        setActions((prev) =>
+          prev.map((a) =>
+            a.id === actionId
+              ? { ...a, status: "rejected", user_feedback: userFeedback }
+              : a
+          )
+        );
+        setUserFeedback("");
+        if (onActionValidated) {
+          onActionValidated(actionId, "rejected");
+        }
+      }
+    } catch (err) {
+      console.error("Error rejecting action:", err);
+      alert("❌ Erreur lors du rejet");
     } finally {
       setValidating(null);
     }
   };
 
   const pendingCount = actions.filter((a) => a.status === "pending").length;
+  const approvedCount = actions.filter((a) => a.status === "approved").length;
+
   const priorityColor = (priority: string) => {
     switch (priority) {
       case "high":
@@ -59,16 +142,31 @@ export default function ValidationPanel({
     }
   };
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Récemment";
+    return new Date(dateStr).toLocaleDateString("fr-FR");
+  };
+
   return (
     <div className="validation-panel">
       <div className="panel-header">
         <h3>📋 Actions à Valider</h3>
-        {pendingCount > 0 && <span className="badge-count">{pendingCount}</span>}
+        <div className="stats">
+          {pendingCount > 0 && <span className="badge-pending">{pendingCount} En attente</span>}
+          {approvedCount > 0 && <span className="badge-approved">{approvedCount} Approuvées</span>}
+        </div>
       </div>
 
-      {actions.length === 0 ? (
+      {loadingActions ? (
+        <div className="loading-state">
+          <p>Chargement des actions...</p>
+        </div>
+      ) : actions.length === 0 ? (
         <div className="empty-state">
           <p>✅ Aucune action en attente</p>
+          <p style={{ fontSize: "0.9rem", marginTop: "8px", color: "var(--text-light)" }}>
+            Les propositions de Claude apparaîtront ici
+          </p>
         </div>
       ) : (
         <div className="actions-grid">
@@ -80,7 +178,10 @@ export default function ValidationPanel({
             >
               <div className="action-header">
                 <div className="action-title">
-                  <span className="agent-label">{action.agent}</span>
+                  {action.agent && <span className="agent-label">{action.agent}</span>}
+                  {action.action_type === "claude_suggestion" && (
+                    <span className="agent-label">🤖 CLAUDE</span>
+                  )}
                   <h4>{action.title}</h4>
                 </div>
                 <span
@@ -91,13 +192,13 @@ export default function ValidationPanel({
                 </span>
               </div>
 
-              <p className="action-description">{action.description}</p>
+              {action.description && (
+                <p className="action-description">{action.description}</p>
+              )}
 
               <div className="action-meta">
-                <span className="timestamp">{action.createdAt}</span>
-                <span
-                  className={`status-badge ${action.status}`}
-                >
+                <span className="timestamp">{formatDate(action.created_at)}</span>
+                <span className={`status-badge ${action.status}`}>
                   {action.status === "pending"
                     ? "⏳ En attente"
                     : action.status === "approved"
@@ -106,28 +207,47 @@ export default function ValidationPanel({
                 </span>
               </div>
 
-              {selectedAction?.id === action.id && action.status === "pending" && (
-                <div className="action-buttons">
-                  <button
-                    className="btn-approve"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleApprove(action.id);
-                    }}
-                    disabled={validating === action.id}
-                  >
-                    {validating === action.id ? "..." : "✅ Approuver"}
-                  </button>
-                  <button
-                    className="btn-reject"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleReject(action.id);
-                    }}
-                    disabled={validating === action.id}
-                  >
-                    {validating === action.id ? "..." : "❌ Rejeter"}
-                  </button>
+              {selectedAction?.id === action.id && (
+                <div className="action-details">
+                  {action.user_feedback && (
+                    <div className="feedback-section">
+                      <h5>💬 Votre feedback</h5>
+                      <p>{action.user_feedback}</p>
+                    </div>
+                  )}
+
+                  {action.status === "pending" && (
+                    <div className="action-input">
+                      <textarea
+                        value={userFeedback}
+                        onChange={(e) => setUserFeedback(e.target.value)}
+                        placeholder="Ajoutez un commentaire (optionnel)..."
+                        rows={2}
+                      />
+                      <div className="action-buttons">
+                        <button
+                          className="btn-approve"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(action.id);
+                          }}
+                          disabled={validating === action.id}
+                        >
+                          {validating === action.id ? "..." : "✅ Approuver"}
+                        </button>
+                        <button
+                          className="btn-reject"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReject(action.id);
+                          }}
+                          disabled={validating === action.id}
+                        >
+                          {validating === action.id ? "..." : "❌ Rejeter"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -156,21 +276,41 @@ export default function ValidationPanel({
           font-size: 1.3rem;
         }
 
-        .badge-count {
-          background: linear-gradient(135deg, var(--danger), var(--warning));
+        .stats {
+          display: flex;
+          gap: 12px;
+        }
+
+        .badge-pending,
+        .badge-approved {
           color: white;
           padding: 4px 12px;
           border-radius: 20px;
           font-weight: 700;
-          font-size: 0.9rem;
-          box-shadow: 0 0 15px rgba(255, 56, 96, 0.3);
+          font-size: 0.85rem;
+          box-shadow: 0 0 10px;
+        }
+
+        .badge-pending {
+          background: linear-gradient(135deg, var(--warning), #ff6b35);
+          box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+        }
+
+        .badge-approved {
+          background: linear-gradient(135deg, var(--success), #00ff88);
+          box-shadow: 0 0 10px rgba(0, 245, 160, 0.3);
+        }
+
+        .empty-state,
+        .loading-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: var(--text-light);
+          font-size: 1.1rem;
         }
 
         .empty-state {
-          text-align: center;
-          padding: 40px 20px;
           color: var(--success);
-          font-size: 1.1rem;
         }
 
         .actions-grid {
@@ -304,10 +444,62 @@ export default function ValidationPanel({
           color: var(--danger);
         }
 
+        .action-details {
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid var(--border);
+          animation: slideDown 0.3s ease-out;
+        }
+
+        .feedback-section {
+          background: var(--bg-elevated);
+          padding: 12px;
+          border-radius: 6px;
+          margin-bottom: 12px;
+          border-left: 3px solid var(--primary);
+        }
+
+        .feedback-section h5 {
+          margin: 0 0 8px 0;
+          font-size: 0.9rem;
+          color: var(--primary);
+        }
+
+        .feedback-section p {
+          margin: 0;
+          font-size: 0.85rem;
+          color: var(--text);
+          font-style: italic;
+        }
+
+        .action-input {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          animation: slideUp 0.3s ease-out;
+        }
+
+        .action-input textarea {
+          padding: 10px 12px;
+          background: var(--bg);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 0.9rem;
+          resize: vertical;
+          transition: border-color 0.3s ease;
+        }
+
+        .action-input textarea:focus {
+          outline: none;
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
         .action-buttons {
           display: flex;
           gap: 8px;
-          margin-top: 12px;
           animation: slideUp 0.3s ease-out;
         }
 

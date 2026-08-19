@@ -32,6 +32,7 @@ export default function ProductPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
+  const [validatedActions, setValidatedActions] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -58,19 +59,51 @@ export default function ProductPage() {
     try {
       setLoading(true);
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+
+      // Fetch current actions to check if any are validated
+      const actionsRes = await fetch(`${apiUrl}/api/projects/${productId}/actions`);
+      const actionsData = await actionsRes.json();
+      const approvedCount = (actionsData.actions || []).filter(
+        (a: any) => a.status === "approved"
+      ).length;
+
+      if (approvedCount === 0 && validatedActions === 0) {
+        alert(
+          "⚠️ Aucune action validée par Claude\n\nAffinez d'abord votre produit avec Claude et validez ses recommandations avant de lancer le CEO."
+        );
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch(`${apiUrl}/api/projects/${productId}/orchestrate`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          validatedActions: approvedCount,
+          fromClaude: approvedCount > 0,
+        }),
       });
+
       const data = await res.json();
       if (data.success) {
-        alert("🚀 CEO Agent a lancé l'orchestration ! Les agents sont maintenant actifs !");
+        alert(
+          "🚀 CEO Agent a lancé l'orchestration !\n\nLes agents spécialisés sont maintenant actifs et travaillent sur votre produit."
+        );
         fetchProduct();
+      } else {
+        alert(`❌ Erreur: ${data.error || "Impossible de lancer l'orchestration"}`);
       }
     } catch (err) {
       console.error("Erreur orchestration", err);
       alert("Erreur lors du lancement de l'orchestration");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleActionValidated = (actionId: string, status: string) => {
+    if (status === "approved") {
+      setValidatedActions((prev) => prev + 1);
     }
   };
 
@@ -151,22 +184,37 @@ export default function ProductPage() {
               <span className="date">Créé : {formatDate(product.created_at)}</span>
             </div>
           </div>
-          <button
-            onClick={launchOrchestration}
-            disabled={loading}
-            style={{
-              padding: "12px 24px",
-              background: "linear-gradient(135deg, #00d9ff, #ff006e)",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              fontWeight: "700",
-              cursor: "pointer",
-              fontSize: "0.95rem",
-            }}
-          >
-            🚀 {loading ? "Orchestration..." : "Lancer CEO"}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {validatedActions > 0 && (
+              <p style={{
+                fontSize: "0.85rem",
+                color: "var(--success)",
+                margin: "0",
+                textAlign: "right",
+              }}>
+                ✅ {validatedActions} action{validatedActions > 1 ? "s" : ""} validée{validatedActions > 1 ? "s" : ""}
+              </p>
+            )}
+            <button
+              onClick={launchOrchestration}
+              disabled={loading}
+              style={{
+                padding: "12px 24px",
+                background: validatedActions > 0
+                  ? "linear-gradient(135deg, #00f5a0, #00d9ff)"
+                  : "linear-gradient(135deg, #00d9ff, #ff006e)",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "700",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontSize: "0.95rem",
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              🚀 {loading ? "Orchestration..." : "Lancer CEO"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -195,18 +243,7 @@ export default function ProductPage() {
       {/* Actions à Valider */}
       <ValidationPanel
         projectId={productId}
-        actions={[
-          {
-            id: 'action-1',
-            agent: 'Market Researcher',
-            title: 'Validation de marché',
-            description: 'Confirmation que le marché cible a été validé avec 10+ entretiens clients',
-            status: 'pending',
-            priority: 'high',
-            createdAt: new Date().toLocaleDateString('fr-FR'),
-            details: { interviews: 12, satisfaction: '92%' }
-          }
-        ]}
+        onActionValidated={handleActionValidated}
       />
 
       <div className="chat-container">
