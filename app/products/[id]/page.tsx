@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { getPhaseLabel, formatDate, getAgentsForPhase } from "@/lib/utils";
+import { getPhaseLabel, formatDate } from "@/lib/utils";
 import AgentGraph from "@/components/AgentGraph";
 import ValidationPanel from "@/components/ValidationPanel";
 import ProjectRefinement from "@/components/ProjectRefinement";
@@ -227,16 +227,9 @@ export default function ProductPage() {
         problem={product.problem}
       />
 
-      {/* Graphe des Agents */}
+      {/* Graphe des Agents - En Temps Réel */}
       <AgentGraph
-        agents={getAgentsForPhase(product.status).map((agent, idx) => ({
-          id: `agent-${idx}`,
-          name: agent.name,
-          role: agent.task,
-          status: idx % 3 === 0 ? 'active' : idx % 3 === 1 ? 'completed' : 'idle',
-          tasks: [agent.task],
-          subAgents: []
-        }))}
+        projectId={productId}
         projectName={product.name}
       />
 

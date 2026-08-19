@@ -6,23 +6,59 @@ interface Agent {
   id: string;
   name: string;
   role: string;
-  status: "active" | "idle" | "completed" | "blocked";
+  status?: "active" | "idle" | "completed" | "blocked";
+  statusDynamic?: "active" | "idle" | "completed" | "blocked";
   tasks: string[];
   subAgents?: Agent[];
+  progress?: {
+    approved: number;
+    rejected: number;
+    total: number;
+  };
 }
 
 interface AgentGraphProps {
-  agents: Agent[];
+  projectId: string;
   projectName: string;
+  initialAgents?: Agent[];
 }
 
-export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
+export default function AgentGraph({ projectId, projectName, initialAgents = [] }: AgentGraphProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [agents, setAgents] = useState<Agent[]>(initialAgents);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<any>(null);
 
+  // Load agents from API
+  useEffect(() => {
+    loadAgents();
+    // Refresh every 5 seconds for real-time updates
+    const interval = setInterval(loadAgents, 5000);
+    return () => clearInterval(interval);
+  }, [projectId]);
+
+  const loadAgents = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      const res = await fetch(`${apiUrl}/api/projects/${projectId}/agents`);
+      const data = await res.json();
+
+      if (data.agents) {
+        setAgents(data.agents);
+        setSummary(data.summary);
+      }
+    } catch (err) {
+      console.error("Error loading agents:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Draw canvas
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || agents.length === 0) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -61,13 +97,16 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
       const x = startX + (index % 3) * spacing;
       const y = startY + Math.floor(index / 3) * spacing;
 
+      // Use dynamic status if available
+      const agentStatus = agent.statusDynamic || agent.status || "idle";
+
       // Draw agent node
       const statusColor =
-        agent.status === "active"
+        agentStatus === "active"
           ? "#00f5a0"
-          : agent.status === "completed"
+          : agentStatus === "completed"
             ? "#00d9ff"
-            : agent.status === "blocked"
+            : agentStatus === "blocked"
               ? "#ff3860"
               : "#a0a8c4";
 
@@ -84,7 +123,7 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
       ctx.textAlign = "center";
       ctx.fillText(agent.name, x, y - 5);
 
-      // Draw status indicator
+      // Draw status indicator (pulsing if active)
       ctx.fillStyle = statusColor;
       ctx.beginPath();
       ctx.arc(x + 30, y - 30, 4, 0, Math.PI * 2);
@@ -100,7 +139,25 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
   return (
     <div className="agent-graph-container">
       <div className="graph-header">
-        <h3>🤖 Graphe d'Agents - {projectName}</h3>
+        <div>
+          <h3>🤖 Graphe d'Agents - {projectName}</h3>
+          {summary && (
+            <div className="agent-summary">
+              <span className="summary-stat">
+                <span className="dot active"></span> {summary.active} Actifs
+              </span>
+              <span className="summary-stat">
+                <span className="dot completed"></span> {summary.completed} Complétés
+              </span>
+              <span className="summary-stat">
+                <span className="dot blocked"></span> {summary.blocked} Bloqués
+              </span>
+              <span className="summary-stat actions">
+                ✅ {summary.actions.approved} approuvées
+              </span>
+            </div>
+          )}
+        </div>
         <div className="status-legend">
           <div className="legend-item">
             <span className="dot active"></span> Actif
@@ -114,7 +171,20 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
         </div>
       </div>
 
-      <canvas ref={canvasRef} className="agent-canvas"></canvas>
+      {loading ? (
+        <div className="loading-state">Chargement des agents...</div>
+      ) : agents.length === 0 ? (
+        <div className="empty-state">
+          <p>Aucun agent n'a été déployé</p>
+          <p style={{ fontSize: "0.9rem", marginTop: "8px", color: "var(--text-light)" }}>
+            Validez des actions Claude et cliquez "Lancer CEO" pour déployer les agents
+          </p>
+        </div>
+      ) : (
+        <>
+          <canvas ref={canvasRef} className="agent-canvas"></canvas>
+        </>
+      )}
 
       <div className="agents-list">
         <h4>📋 Détails des Agents</h4>
@@ -167,19 +237,49 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
         .graph-header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           margin-bottom: 20px;
+          gap: 20px;
+        }
+
+        .graph-header > div:first-child {
+          flex: 1;
         }
 
         .graph-header h3 {
-          margin: 0;
+          margin: 0 0 12px 0;
           font-size: 1.3rem;
+        }
+
+        .agent-summary {
+          display: flex;
+          gap: 20px;
+          font-size: 0.9rem;
+          flex-wrap: wrap;
+        }
+
+        .summary-stat {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          background: var(--bg);
+          border-radius: 6px;
+          border: 1px solid var(--border);
+        }
+
+        .summary-stat.actions {
+          background: linear-gradient(135deg, rgba(0, 245, 160, 0.1), rgba(0, 217, 255, 0.1));
+          border-color: var(--primary);
+          color: var(--success);
+          font-weight: 600;
         }
 
         .status-legend {
           display: flex;
           gap: 20px;
           font-size: 0.9rem;
+          white-space: nowrap;
         }
 
         .legend-item {
@@ -216,6 +316,34 @@ export default function AgentGraph({ agents, projectName }: AgentGraphProps) {
           border-radius: 8px;
           margin-bottom: 20px;
           background: var(--bg);
+        }
+
+        .loading-state,
+        .empty-state {
+          text-align: center;
+          padding: 60px 20px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--bg);
+          color: var(--text-light);
+          font-size: 1rem;
+        }
+
+        .empty-state {
+          color: var(--text-light);
+        }
+
+        .loading-state {
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.6;
+          }
         }
 
         .agents-list {
