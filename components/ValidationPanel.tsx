@@ -34,6 +34,9 @@ export default function ValidationPanel({
 
   useEffect(() => {
     loadActions();
+    // Auto-refresh actions every 2 seconds (so new Claude suggestions appear!)
+    const interval = setInterval(loadActions, 2000);
+    return () => clearInterval(interval);
   }, [projectId]);
 
   const loadActions = async () => {

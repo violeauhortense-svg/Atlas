@@ -157,20 +157,38 @@ ${claudeResponse.recommendations.map((r: string) => `• ${r}`).join('\n')}
 
   const createProposedAction = async (action: any) => {
     try {
+      if (!action || !action.title) {
+        console.warn("Invalid action structure:", action);
+        return;
+      }
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      await fetch(`${apiUrl}/api/projects/${projectId}/actions`, {
+      const actionPayload = {
+        title: action.title,
+        description: action.description || "Action proposée par Claude",
+        actionType: "claude_suggestion",
+        priority: "high",
+        details: { proposedBy: "claude", timestamp: new Date().toISOString() },
+      };
+
+      console.log("Creating action:", actionPayload);
+
+      const res = await fetch(`${apiUrl}/api/projects/${projectId}/actions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: action.title,
-          description: action.description,
-          actionType: "claude_suggestion",
-          priority: "high",
-          details: { proposedBy: "claude", timestamp: new Date().toISOString() },
-        }),
+        body: JSON.stringify(actionPayload),
       });
+
+      const data = await res.json();
+      console.log("Action creation response:", data);
+
+      if (!res.ok) {
+        console.error("Failed to create action:", data);
+      } else {
+        console.log("✅ Action créée avec succès:", data);
+      }
     } catch (err) {
-      console.error("Error creating proposed action:", err);
+      console.error("❌ Error creating proposed action:", err);
     }
   };
 
