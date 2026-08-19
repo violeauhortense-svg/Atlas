@@ -43,13 +43,29 @@ export default function ValidationPanel({
     setLoadingActions(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+      console.log("🔄 Loading actions from:", `${apiUrl}/api/projects/${projectId}/actions`);
+
       const res = await fetch(`${apiUrl}/api/projects/${projectId}/actions`);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ API Error:", res.status, errorText);
+        console.log("💡 Possible causes: Tables missing? Supabase credentials invalid?");
+        return;
+      }
+
       const data = await res.json();
+      console.log("✅ API Response:", data);
+
       if (data.actions) {
+        console.log(`✅ Loaded ${data.actions.length} actions`);
         setActions(data.actions);
+      } else if (data.error) {
+        console.error("❌ API returned error:", data.error);
       }
     } catch (err) {
-      console.error("Error loading actions:", err);
+      console.error("❌ Error loading actions:", err);
+      console.log("💡 Network error or CORS issue?");
     } finally {
       setLoadingActions(false);
     }
