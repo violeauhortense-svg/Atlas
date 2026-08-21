@@ -111,8 +111,8 @@ export default function ProductPage() {
 
   const fetchMessages = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      const res = await fetch(`${apiUrl}/api/projects/${productId}/chat`);
+      // Use relative URL to avoid CORS issues
+      const res = await fetch(`/api/projects/${productId}/chat`);
       const data = await res.json();
       setMessages(data.messages || []);
     } catch (err) {
@@ -123,10 +123,9 @@ export default function ProductPage() {
   const launchOrchestration = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
 
       // Fetch current actions to check if any are validated
-      const actionsRes = await fetch(`${apiUrl}/api/projects/${productId}/actions`);
+      const actionsRes = await fetch(`/api/projects/${productId}/actions`);
       const actionsData = await actionsRes.json();
       const approvedCount = (actionsData.actions || []).filter(
         (a: any) => a.status === "approved"
@@ -140,7 +139,7 @@ export default function ProductPage() {
         return;
       }
 
-      const res = await fetch(`${apiUrl}/api/projects/${productId}/orchestrate`, {
+      const res = await fetch(`/api/projects/${productId}/orchestrate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -175,10 +174,8 @@ export default function ProductPage() {
   const handleDecision = async (messageId: string, option: string) => {
     try {
       setDecidingMessageId(messageId);
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
 
-      const res = await fetch(`${apiUrl}/api/projects/${productId}/agent-rebrief`, {
+      const res = await fetch(`/api/projects/${productId}/agent-rebrief`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -218,8 +215,7 @@ export default function ProductPage() {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      const res = await fetch(`${apiUrl}/api/projects/${productId}`);
+      const res = await fetch(`/api/projects/${productId}`);
       const data = await res.json();
       setProduct(data);
     } catch (err) {
@@ -245,8 +241,7 @@ export default function ProductPage() {
     setChatLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      const res = await fetch(`${apiUrl}/api/projects/${productId}/chat`, {
+      const res = await fetch(`/api/projects/${productId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: messageText }),
