@@ -64,27 +64,32 @@ export default function ValidationPanel({
 
       if (decisionsRes.ok) {
         const decisionsData = await decisionsRes.json();
-        if (decisionsData.decisions && decisionsData.decisions.length > 0) {
+        console.log("📦 Decisions response:", decisionsData);
+
+        if (decisionsData.decisions && Array.isArray(decisionsData.decisions)) {
           // Convert decisions to actions format
           const convertedActions: Action[] = decisionsData.decisions.map((dec: any) => ({
-            id: dec.id,
-            title: dec.action,
-            description: `Agent: ${dec.agent_name} | Type: ${dec.decision_type}`,
-            status: dec.status === "approved" ? "approved" : "pending",
+            id: dec.id || `dec-${Math.random()}`,
+            title: `✅ ${dec.action || "Décision"}`,
+            description: `${dec.agent_name ? `Agent: ${dec.agent_name}` : "Claude Decision"} • ${dec.decision_type || "approval"}`,
+            status: "approved", // Claude decisions are pre-approved
             priority: "high",
             created_at: dec.created_at,
             details: dec.context,
             action_type: "claude_suggestion",
             agent: "🤖 CLAUDE",
           }));
-          console.log(`✅ Loaded ${convertedActions.length} Claude decisions`);
-          setActions(convertedActions);
-          return;
+
+          if (convertedActions.length > 0) {
+            console.log(`✅ Loaded ${convertedActions.length} Claude decisions`);
+            setActions(convertedActions);
+            return;
+          }
         }
       }
 
       // No actions or decisions found
-      console.log("✅ No actions or decisions found");
+      console.log("✅ No actions or decisions found yet");
       setActions([]);
     } catch (err) {
       console.error("❌ Error loading actions:", err);

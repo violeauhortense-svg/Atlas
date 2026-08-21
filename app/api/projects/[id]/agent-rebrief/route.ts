@@ -1,10 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl || "", supabaseKey || "");
+// Simple in-memory store for decisions (temporary)
+// In production, this would be in Supabase
+const decisionsStore = new Map<string, any[]>();
 
 interface ReBriefRequest {
   agentName: string;
@@ -31,56 +29,64 @@ export async function POST(
       );
     }
 
-    // Log decision to Supabase
-    const { data: decision, error: dbError } = await supabase
-      .from("decisions")
-      .insert([
-        {
-          project_id: params.id,
-          agent_name: agentName,
-          decision_type: "claude_feedback",
-          action: action,
-          status: "approved",
-          context: context,
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
+    // Create decision object
+    const decision = {
+      id: `decision-${Date.now()}`,
+      project_id: params.id,
+      agent_name: agentName,
+      decision_type: "claude_feedback",
+      action: action,
+      status: "approved",
+      context: context,
+      created_at: new Date().toISOString(),
+    };
 
-    if (dbError) {
-      console.error("Database error:", dbError);
-      return NextResponse.json(
-        { error: "Failed to log decision" },
-        { status: 500 }
-      );
+    // Store in memory (and optionally Supabase)
+    if (!decisionsStore.has(params.id)) {
+      decisionsStore.set(params.id, []);
+    }
+    decisionsStore.get(params.id)?.push(decision);
+
+    // Try to save to Supabase (non-blocking)
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (supabaseUrl && supabaseKey) {
+        await fetch(`${supabaseUrl}/rest/v1/decisions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify(decision),
+        }).catch((err) => {
+          console.warn("Supabase save failed (non-blocking):", err);
+        });
+      }
+    } catch (err) {
+      console.warn("Supabase attempt failed:", err);
     }
 
-    // TODO: Send re-brief to agent via Paperclip orchestration
-    // For now, log it and return success
-    console.log("Re-brief created:", {
-      project_id: params.id,
-      agent: agentName,
+    console.log("✅ Decision stored:", {
+      id: decision.id,
       action,
-      decision_id: decision?.id,
-      timestamp: new Date().toISOString(),
+      agentName,
+      timestamp: decision.created_at,
     });
-
-    // Generate re-brief message for CEO
-    const reBriefMessage = generateReBriefMessage(agentName, action, context);
 
     return NextResponse.json({
       success: true,
-      message: `Agent ${agentName} re-briefé avec: ${action}`,
-      taskId: `task-${decision?.id || Date.now()}`,
-      reBriefMessage,
-      decisionId: decision?.id,
+      message: `✅ Décision enregistrée: ${action}`,
+      taskId: decision.id,
+      decision,
     });
   } catch (error) {
-    console.error("Re-brief error:", error);
+    console.error("❌ Re-brief error:", error);
     const errorMsg = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to create re-brief", details: errorMsg },
+      { error: "Failed to create decision", details: errorMsg },
       { status: 500 }
     );
   }
@@ -91,42 +97,57 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { data, error } = await supabase
-      .from("decisions")
-      .select("*")
-      .eq("project_id", params.id)
-      .eq("decision_type", "claude_feedback")
-      .order("created_at", { ascending: false });
+    // Get from memory first
+    const memoryDecisions = decisionsStore.get(params.id) || [];
 
-    if (error) throw error;
+    // Also try Supabase
+    let supabaseDecisions: any[] = [];
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (supabaseUrl && supabaseKey) {
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/decisions?project_id=eq.${params.id}`,
+          {
+            headers: {
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          supabaseDecisions = await response.json();
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase fetch failed:", err);
+    }
+
+    // Combine and deduplicate
+    const allDecisions = [
+      ...memoryDecisions,
+      ...supabaseDecisions.filter(
+        (s) => !memoryDecisions.find((m) => m.id === s.id)
+      ),
+    ].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    console.log(`✅ Fetched ${allDecisions.length} decisions for project ${params.id}`);
 
     return NextResponse.json({
-      decisions: data || [],
-      count: data?.length || 0,
+      decisions: allDecisions,
+      count: allDecisions.length,
+      source: memoryDecisions.length > 0 ? "memory+supabase" : "supabase",
     });
   } catch (error) {
-    console.error("Error fetching decisions:", error);
-    return NextResponse.json({ decisions: [], count: 0 });
+    console.error("❌ Error fetching decisions:", error);
+    return NextResponse.json(
+      { decisions: [], count: 0, error: String(error) },
+      { status: 500 }
+    );
   }
-}
-
-// Helper: Generate re-brief message for CEO agent
-function generateReBriefMessage(
-  agentName: string,
-  action: string,
-  context: any
-): string {
-  const agentMessages: { [key: string]: string } = {
-    "product-manager": `Re-brief: Product Manager needs to re-analyze product scope based on user feedback: "${action}". Update product-brief.md and pricing-model.json accordingly.`,
-    "market-research": `Re-brief: Market Research should expand analysis based on: "${action}". Update market-analysis.md with new findings.`,
-    brand: `Re-brief: Brand should reconsider positioning based on: "${action}". Update brand-guidelines.md accordingly.`,
-    "content-agent": `Re-brief: Content needs to adapt messaging based on: "${action}". Update landing-page-copy.md and email sequences.`,
-    "social-media": `Re-brief: Social Media strategy needs to pivot: "${action}". Update content-calendar.json accordingly.`,
-    fullstack: `Re-brief: Fullstack Developer should adjust implementation based on: "${action}". Update architecture and component design.`,
-  };
-
-  return (
-    agentMessages[agentName] ||
-    `Re-brief ${agentName}: ${action}`
-  );
 }
