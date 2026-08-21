@@ -45,27 +45,51 @@ export default function ValidationPanel({
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
       console.log("🔄 Loading actions from:", `${apiUrl}/api/projects/${projectId}/actions`);
 
+      // Try to load from actions endpoint
       const res = await fetch(`${apiUrl}/api/projects/${projectId}/actions`);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ API Error:", res.status, errorText);
-        console.log("💡 Possible causes: Tables missing? Supabase credentials invalid?");
-        return;
+      if (res.ok) {
+        const data = await res.json();
+        console.log("✅ API Response:", data);
+        if (data.actions) {
+          console.log(`✅ Loaded ${data.actions.length} actions`);
+          setActions(data.actions);
+          return;
+        }
       }
 
-      const data = await res.json();
-      console.log("✅ API Response:", data);
+      // Fallback: Load Claude decisions as actions
+      console.log("⚠️  Actions endpoint failed, loading Claude decisions instead...");
+      const decisionsRes = await fetch(`${apiUrl}/api/projects/${projectId}/agent-rebrief`);
 
-      if (data.actions) {
-        console.log(`✅ Loaded ${data.actions.length} actions`);
-        setActions(data.actions);
-      } else if (data.error) {
-        console.error("❌ API returned error:", data.error);
+      if (decisionsRes.ok) {
+        const decisionsData = await decisionsRes.json();
+        if (decisionsData.decisions && decisionsData.decisions.length > 0) {
+          // Convert decisions to actions format
+          const convertedActions: Action[] = decisionsData.decisions.map((dec: any) => ({
+            id: dec.id,
+            title: dec.action,
+            description: `Agent: ${dec.agent_name} | Type: ${dec.decision_type}`,
+            status: dec.status === "approved" ? "approved" : "pending",
+            priority: "high",
+            created_at: dec.created_at,
+            details: dec.context,
+            action_type: "claude_suggestion",
+            agent: "🤖 CLAUDE",
+          }));
+          console.log(`✅ Loaded ${convertedActions.length} Claude decisions`);
+          setActions(convertedActions);
+          return;
+        }
       }
+
+      // No actions or decisions found
+      console.log("✅ No actions or decisions found");
+      setActions([]);
     } catch (err) {
       console.error("❌ Error loading actions:", err);
       console.log("💡 Network error or CORS issue?");
+      setActions([]);
     } finally {
       setLoadingActions(false);
     }
