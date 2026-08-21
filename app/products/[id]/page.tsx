@@ -32,26 +32,59 @@ interface ProductData {
 }
 
 function extractDecision(message: string): Decision | null {
-  const match = message.match(/\[DECISION_NEEDED\](.*?)\[\/DECISION_NEEDED\]/s);
-  if (!match) return null;
+  // Match the decision block - handle both single line and multiline
+  const match = message.match(/\[DECISION_NEEDED\](.*?)\[\/DECISION_NEEDED\]/is);
+  if (!match) {
+    console.log("❌ No decision block found");
+    return null;
+  }
 
   const content = match[1];
-  const actionMatch = content.match(/Action:\s*(.*?)(?:\n|$)/);
-  const optionsMatch = content.match(/Options:\s*(.*?)(?:\n|$)/);
+  console.log("🔍 Found decision block:", content.substring(0, 100));
 
-  if (!actionMatch || !optionsMatch) return null;
+  // Extract Action - more flexible regex
+  const actionMatch = content.match(/Action:\s*([^\n\|]+?)(?:\s*\||$)/i);
+  if (!actionMatch) {
+    console.log("❌ No action found in:", content);
+    return null;
+  }
+
+  // Extract Options - handle them being on same line or multiple lines
+  // Options come after "Options:" and before "[/DECISION_NEEDED]"
+  const optionsMatch = content.match(/Options:\s*(.+?)(?:\[\/DECISION_NEEDED\]|$)/is);
+  if (!optionsMatch) {
+    console.log("❌ No options found");
+    return null;
+  }
+
+  const optionsText = optionsMatch[1].trim();
+  const options = optionsText
+    .split("|")
+    .map((o) => o.trim())
+    .filter((o) => o.length > 0 && !o.includes("["));
+
+  console.log("✅ Extracted decision:", {
+    action: actionMatch[1].trim(),
+    optionsCount: options.length,
+    options,
+  });
+
+  if (options.length === 0) {
+    console.log("❌ No options extracted");
+    return null;
+  }
 
   return {
     action: actionMatch[1].trim(),
-    options: optionsMatch[1]
-      .split("|")
-      .map((o) => o.trim())
-      .filter((o) => o.length > 0),
+    options,
   };
 }
 
 function stripDecisionFromMessage(message: string): string {
-  return message.replace(/\[DECISION_NEEDED\].*?\[\/DECISION_NEEDED\]/s, "").trim();
+  // Remove the decision block entirely
+  const cleaned = message.replace(/\[DECISION_NEEDED\].*?\[\/DECISION_NEEDED\]/is, "").trim();
+  console.log("📝 Cleaned message (removed decision block)");
+  return cleaned;
 }
 
 export default function ProductPage() {
