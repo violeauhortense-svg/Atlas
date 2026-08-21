@@ -7,10 +7,18 @@ import AgentGraph from "@/components/AgentGraph";
 import ValidationPanel from "@/components/ValidationPanel";
 import ProjectRefinement from "@/components/ProjectRefinement";
 
+interface Decision {
+  action: string;
+  options: string[];
+}
+
 interface Message {
   role: "user" | "assistant";
   message: string;
   timestamp?: string;
+  hasDecision?: boolean;
+  decision?: Decision;
+  messageId?: string;
 }
 
 interface ProductData {
@@ -23,16 +31,40 @@ interface ProductData {
   problem?: string;
 }
 
+function extractDecision(message: string): Decision | null {
+  const match = message.match(/\[DECISION_NEEDED\](.*?)\[\/DECISION_NEEDED\]/s);
+  if (!match) return null;
+
+  const content = match[1];
+  const actionMatch = content.match(/Action:\s*(.*?)(?:\n|$)/);
+  const optionsMatch = content.match(/Options:\s*(.*?)(?:\n|$)/);
+
+  if (!actionMatch || !optionsMatch) return null;
+
+  return {
+    action: actionMatch[1].trim(),
+    options: optionsMatch[1]
+      .split("|")
+      .map((o) => o.trim())
+      .filter((o) => o.length > 0),
+  };
+}
+
+function stripDecisionFromMessage(message: string): string {
+  return message.replace(/\[DECISION_NEEDED\].*?\[\/DECISION_NEEDED\]/s, "").trim();
+}
+
 export default function ProductPage() {
   const params = useParams();
   const productId = params.id as string;
-  
+
   const [product, setProduct] = useState<ProductData | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [validatedActions, setValidatedActions] = useState<number>(0);
+  const [decidingMessageId, setDecidingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -107,6 +139,45 @@ export default function ProductPage() {
     }
   };
 
+  const handleDecision = async (messageId: string, option: string) => {
+    try {
+      setDecidingMessageId(messageId);
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
+
+      const res = await fetch(`${apiUrl}/api/projects/${productId}/agent-rebrief`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentName: "product-manager",
+          action: option,
+          context: {
+            userDecision: option,
+            messageId,
+            timestamp: new Date().toISOString(),
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Add confirmation message
+        const confirmMessage: Message = {
+          role: "assistant",
+          message: `✅ Décision enregistrée: **${option.replace(/_/g, " ")}**\n\nLe CEO va re-briefer les agents concernés avec cette nouvelle direction.`,
+          timestamp: new Date().toISOString(),
+          messageId: `confirm-${Date.now()}`,
+        };
+        setMessages((prev) => [...prev, confirmMessage]);
+      }
+    } catch (err) {
+      console.error("Decision error:", err);
+      alert("❌ Erreur lors de la validation de la décision");
+    } finally {
+      setDecidingMessageId(null);
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -149,11 +220,18 @@ export default function ProductPage() {
       });
 
       const data = await res.json();
-      
+
+      // Extract decision from message if present
+      const decision = extractDecision(data.message);
+      const cleanMessage = stripDecisionFromMessage(data.message);
+
       const assistantMessage: Message = {
         role: "assistant",
-        message: data.message,
+        message: cleanMessage,
         timestamp: new Date().toISOString(),
+        hasDecision: !!decision,
+        decision: decision || undefined,
+        messageId: `msg-${Date.now()}`,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -250,9 +328,28 @@ export default function ProductPage() {
           
           {messages.map((msg, idx) => (
             <div key={idx} className={`message ${msg.role}`}>
-              <div className={`message-content`}>
-                {msg.message}
-              </div>
+              <div className={`message-content`}>{msg.message}</div>
+              {msg.hasDecision && msg.decision && (
+                <div className="decision-box">
+                  <p className="decision-action">
+                    <strong>❓ {msg.decision.action}</strong>
+                  </p>
+                  <div className="decision-buttons">
+                    {msg.decision.options.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() =>
+                          handleDecision(msg.messageId || `msg-${idx}`, opt)
+                        }
+                        disabled={decidingMessageId === msg.messageId}
+                        className={`decision-btn ${opt.toLowerCase()}`}
+                      >
+                        {decidingMessageId === msg.messageId ? "⏳..." : opt.replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           
@@ -382,6 +479,63 @@ export default function ProductPage() {
 
         .chat-form button {
           padding: 10px 20px;
+        }
+
+        .decision-box {
+          margin-top: 12px;
+          padding: 12px;
+          background: linear-gradient(135deg, rgba(0, 245, 160, 0.1), rgba(0, 217, 255, 0.1));
+          border: 2px solid var(--primary);
+          border-radius: 8px;
+          margin-left: -4px;
+        }
+
+        .decision-action {
+          margin: 0 0 10px 0;
+          font-size: 0.95rem;
+          color: var(--text);
+        }
+
+        .decision-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .decision-btn {
+          padding: 10px 16px;
+          border: 1px solid var(--primary);
+          border-radius: 6px;
+          background: transparent;
+          color: var(--primary);
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 0.9rem;
+          text-transform: capitalize;
+        }
+
+        .decision-btn:hover:not(:disabled) {
+          background: var(--primary);
+          color: white;
+          transform: translateX(4px);
+        }
+
+        .decision-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .decision-btn.oui_test_99:hover:not(:disabled),
+        .decision-btn.yes_test_99:hover:not(:disabled) {
+          background: linear-gradient(135deg, #00f5a0, #00d9ff);
+          border-color: #00f5a0;
+        }
+
+        .decision-btn.continuer_49_seul:hover:not(:disabled),
+        .decision-btn.continue_49_only:hover:not(:disabled) {
+          background: linear-gradient(135deg, #ff006e, #ff0080);
+          border-color: #ff006e;
         }
       `}</style>
     </div>
