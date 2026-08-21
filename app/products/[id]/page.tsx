@@ -3,9 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getPhaseLabel, formatDate } from "@/lib/utils";
-import AgentGraph from "@/components/AgentGraph";
-import ValidationPanel from "@/components/ValidationPanel";
-import ProjectRefinement from "@/components/ProjectRefinement";
 
 interface Decision {
   action: string;
@@ -324,26 +321,6 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* Affiner le projet avant lancement */}
-      <ProjectRefinement
-        projectId={productId}
-        projectName={product.name}
-        description={product.description}
-        targetUsers={product.target_users}
-        problem={product.problem}
-      />
-
-      {/* Graphe des Agents - En Temps Réel */}
-      <AgentGraph
-        projectId={productId}
-        projectName={product.name}
-      />
-
-      {/* Actions à Valider */}
-      <ValidationPanel
-        projectId={productId}
-        onActionValidated={handleActionValidated}
-      />
 
       <div className="chat-container">
         <div className="messages">
