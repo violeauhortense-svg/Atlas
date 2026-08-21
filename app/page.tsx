@@ -24,8 +24,7 @@ export default function Dashboard() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      const res = await fetch(`${apiUrl}/api/projects`);
+      const res = await fetch(`/api/projects`);
       const data = await res.json();
       setProducts(data.projects || []);
     } catch (err) {

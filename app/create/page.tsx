@@ -27,8 +27,7 @@ export default function CreateIdea() {
     setError("");
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://atlas-1-mu.vercel.app";
-      const res = await fetch(`${apiUrl}/api/projects`, {
+      const res = await fetch(`/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
